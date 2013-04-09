@@ -10,6 +10,7 @@ import java.io.OutputStream;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Picture;
 import android.os.Environment;
@@ -168,5 +169,10 @@ public class ArtBookUtils {
 		}
 		Log.d("artbook", "save bitmap time: "
 				+ (System.currentTimeMillis() - time));
+	}
+	
+	
+	public static Bitmap loadBitmap(int  index) {
+		return BitmapFactory.decodeFile(Environment.getExternalStorageDirectory()+"/loading"+index+".png");
 	}
 }
