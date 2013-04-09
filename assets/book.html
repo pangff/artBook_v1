@@ -1,0 +1,45 @@
+<html>
+<head>
+    <title>艺术史</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0,width=device-width,user-scalable=no">
+    <script src="jquery-1.9.1.min.js"></script>
+    <link href="book.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div id="content"></div>
+<script>
+    var count=0;
+    $(document).ready(function(){
+        $('#content').load('data/1900.html',function(){
+           
+
+            $('#content').on('touchstart touchend touchmove',function(event){
+                console.log('touch event type: '+event.type+', target: '+event.target);
+                console.log('target offset.left: '+$(event.target).offset().left+', top:'+$(event.target).offset().top);
+//                event.preventDefault();
+                return true;
+            });
+
+            var totalWidth =  $('#content').width();
+   		 	var pageWidth = document.body.clientWidth;
+   		 	
+   		    var totalWidth = 6*360;// $('#content').width();
+		 	var pageWidth = document.body.clientWidth;
+		 	
+   			console.log('*******totalWidth'+totalWidth);
+   		 	console.log('*******PageCount'+totalWidth/pageWidth);
+            Android.onPageLoaded(totalWidth,pageWidth);
+        });
+    });
+    
+   function  pageScroll(page){
+	   $('#content').scrollLeft((360+10)*page);
+	   setTimeout(function(){
+		   Android.onScrollFinish();
+	   },0);
+	}
+	   
+</script>
+</body>
+</html>

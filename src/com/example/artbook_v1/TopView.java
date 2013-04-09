@@ -1,0 +1,1 @@
+package com.example.artbook_v1;import android.content.Context;import android.util.AttributeSet;import android.widget.RelativeLayout;public class TopView extends RelativeLayout{		public TopView(Context context) {		super(context);	}		public TopView(Context context, AttributeSet attrs) {		super(context, attrs);	}	}
