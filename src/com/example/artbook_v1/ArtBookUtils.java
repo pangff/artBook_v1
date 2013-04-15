@@ -14,6 +14,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Picture;
 import android.os.Environment;
+import android.provider.Settings.Global;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
@@ -140,20 +141,29 @@ public class ArtBookUtils {
 		int width = picture.getWidth();
 		int height = picture.getHeight();
 		Bitmap bitmap = null;
+		Bitmap bt = null;
 		if (width > 0 && height > 0) {
 			// 创建指定高宽的Bitmap对象
 			bitmap = Bitmap
-					.createBitmap(ArtBookUtils.dip2px(context, width), ArtBookUtils.dip2px(context, height), Bitmap.Config.ARGB_8888);
-			// 创建Canvas,并以bitmap为绘制目标
+					.createBitmap( width, height, Bitmap.Config.ARGB_8888);
+			
+						// 创建Canvas,并以bitmap为绘制目标
+			
 			Canvas canvas = new Canvas(bitmap);
 			// 将WebView影像绘制在Canvas上
 			picture.draw(canvas);
+			bt = Bitmap.createScaledBitmap(bitmap, ArtBookUtils.dip2px(context, width), ArtBookUtils.dip2px(context, height), true);
+
+			if(bitmap!=null){
+				bitmap.recycle();
+				bitmap = null;
+			}
 
 			Log.d("artbook",
 					"load bitmap by capture time: "
 							+ (System.currentTimeMillis() - time));
 		}
-		return bitmap;
+		return bt;
 	}
 
 	public static void saveBitmap(Bitmap bitmap, String fileName) {
@@ -162,7 +172,7 @@ public class ArtBookUtils {
 				+ fileName;
 		try {
 			OutputStream stream = new FileOutputStream(filePath);
-			bitmap.compress(Bitmap.CompressFormat.PNG, 80, stream);
+			bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
 			stream.close();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -172,7 +182,8 @@ public class ArtBookUtils {
 	}
 	
 	
-	public static Bitmap loadBitmap(int  index) {
-		return BitmapFactory.decodeFile(Environment.getExternalStorageDirectory()+"/loading"+index+".png");
+	public static Bitmap loadBitmap(int index) {
+		Bitmap bt =  BitmapFactory.decodeFile(Environment.getExternalStorageDirectory()+"/loadings_"+index+".png");
+		return  bt;
 	}
 }

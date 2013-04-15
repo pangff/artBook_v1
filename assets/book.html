@@ -4,22 +4,57 @@
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0,width=device-width,user-scalable=no">
     <script src="jquery-1.9.1.min.js"></script>
+    <script src="android.selection.js"></script>
     <link href="book.css" rel="stylesheet" type="text/css">
+    <style>
+	    span {
+			background-color: #ffd7b6;
+		}
+    </style>
 </head>
 <body>
 <div id="content"></div>
 <script>
     var count=0;
+    var startCoords = {}, endCoords = {};
+    
     $(document).ready(function(){
         $('#content').load('data/1900.html',function(){
            
 
-            $('#content').on('touchstart touchend touchmove',function(event){
-                console.log('touch event type: '+event.type+', target: '+event.target);
-                console.log('target offset.left: '+$(event.target).offset().left+', top:'+$(event.target).offset().top);
-//                event.preventDefault();
+             $('#content').on('touchstart',function(event){
+            	  endCoords = event.originalEvent.targetTouches[0];
+            	    startCoords.pageX = event.originalEvent.targetTouches[0].pageX;
+            	    startCoords.pageY = event.originalEvent.targetTouches[0].pageY;
+            	    android.selection.startTouch(startCoords.pageX, startCoords.pageY);
+            	 console.log('touch start event type: '+startCoords.pageX+', target: '+startCoords.pageY);
                 return true;
-            });
+            }); 
+             
+             $('#content').on('touchend',function(event){
+            	 //var touch = event.changeTouches[0];
+            	 //startCoords.pageX = event.originalEvent.touches[0].pageX;
+         	     //startCoords.pageY = event.originalEvent.touches[0].pageY;
+         	     if(android.editFlage){
+         	    	android.selection.endTouch(startCoords.pageX, startCoords.pageY);
+         	    	android.editFlage = false;
+         	     }
+         	   
+         	   
+            	 console.log('touch end event type: '+startCoords.pageX+', target: '+startCoords.pageY);
+                 return true;
+             }); 
+             
+             $('#content').on('touchmove',function(event){
+            	 //event.preventDefault();
+            	 startCoords.pageX = event.originalEvent.targetTouches[0].pageX;
+         	     startCoords.pageY = event.originalEvent.targetTouches[0].pageY;
+         	      if(android.editFlage){
+         	    	 android.selection.moveTouch(startCoords.pageX, startCoords.pageY);
+         	      }
+            	 console.log('touchmove event type pageX: '+startCoords.pageX+', pageY: '+startCoords.pageY);
+                 return true;
+             }); 
 
             var totalWidth =  $('#content').width();
    		 	var pageWidth = document.body.clientWidth;
@@ -37,6 +72,20 @@
 	   $('#content').scrollLeft((360+10)*page);
 	   setTimeout(function(){
 		   Android.onScrollFinish();
+	   },0);
+	}
+   
+   function  justPageScroll(page){
+	   $('#content').scrollLeft((360+10)*page);
+	   setTimeout(function(){
+ 		   Android.onJustScrollFinish();
+ 	   	},0);
+	}
+   
+   function  resetScroll(){
+	   $('#content').scrollLeft(0);
+	   setTimeout(function(){
+		   Android.onResetScrollFinish();
 	   },0);
 	}
 	   
