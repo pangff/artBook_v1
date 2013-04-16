@@ -25,7 +25,6 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
 import com.example.artbook_v1.CurlView.OnPageAnimationDoneListener;
-import com.example.artbook_v1.CustomCurlView.OnViewCompleteListener;
 
 /**
  * Created with IntelliJ IDEA. User: marshal Date: 13-4-3 Time: 下午3:59 To change
@@ -90,15 +89,17 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 			public boolean onTouch(View view, MotionEvent event) {
 				
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					setCurlViewVisible(true);
 					hasDispatch = false;
 				}
 
 				if (event.getAction() == MotionEvent.ACTION_MOVE) {
 					if(!isInSelection && !hasDispatch){
-						setCurlViewVisible(true);
+						event.setAction(MotionEvent.ACTION_DOWN);
 						dispatchTouchEvents(event);
+						//webView.setVisibility(View.INVISIBLE);
 						return true;
-					}
+					} 
 				}
 				if (event.getAction() == MotionEvent.ACTION_UP) {
 					isInSelection  = false;
@@ -111,6 +112,8 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 			@Override
 			public boolean onLongClick(View v) {
 				Log.e("!!!!!!!!!!!!!", "long touch");
+				setWebViewVisible(true);
+				setCurlViewVisible(false);
 				webView.loadUrl("javascript:android.selection.longTouch();");
 				isInSelection = true;
 				return true;
@@ -119,8 +122,7 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 		
 		
 
-		this.addView(webView);
-
+	
 		curlView = new CustomCurlView(getContext());
 		curlView.setLayoutParams(new ViewGroup.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT,
@@ -129,17 +131,30 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 		curlView.setViewMode(CurlView.SHOW_ONE_PAGE);
 		curlView.setCurrentIndex(0);
 		curlView.setBackgroundColor(0xFF202830);
-		curlView.setVisibility(View.INVISIBLE);
+		//curlView.setVisibility(View.INVISIBLE);
+		
+		//curlView.setWebView(webView);
 
 		topView = new TopView(getContext());
-		topView.setVisibility(View.INVISIBLE);
+		topView.setBackgroundColor(Color.BLUE);
+		//topView.setVisibility(View.INVISIBLE);
+//		topView.setOnTouchListener(new OnTouchListener() {
+//			
+//			@Override
+//			public boolean onTouch(View v, MotionEvent event) {
+//				
+//				return true;
+//			}
+//		});
 		
 		
 		
-		this.addView(curlView);
+		
+		
 		this.addView(topView);
-		
-		curlView.setAllowLastPageCurl(false);
+		this.addView(webView);
+		this.addView(curlView);
+		//curlView.setAllowLastPageCurl(false);
 		
 		
 		
@@ -149,23 +164,24 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 		curlView.setOnPageAnimationDoneListener(new OnPageAnimationDoneListener() {
 			@Override
 			public void onPageAnimationDone(final int index) {
-				Log.e("?????????????????", "第"+index+"页");
 				handler.post(new Runnable() {
 					@Override
 					public void run() {
-						webView.loadUrl("javascript:justPageScroll("+index+")");
+						setCurlViewVisible(false);
+						setWebViewVisible(true);
 					}
 				});
 			}
 		});
+		
 	}
 	
 	/**
 	 * 动画结束后js同步滚动完成，隐藏curlview
 	 */
 	public void onJustScrollFinish() {
-		Log.e("___________","+++++++++++");
-		setCurlViewVisible(false);
+		
+		Log.e("%%%%%%%%%%%%%%%","翻页完毕加载webview");
 	}
 	
 	/**
@@ -173,35 +189,42 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 	 * @param event
 	 */
 	public void dispatchTouchEvents(final MotionEvent event){
-		
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
 				
 				if(event!=null && curlView.getVisibility() == View.VISIBLE ){
-					
-					Log.e("^^^^^^^^^^^^","事件传递");
 					event.setAction(MotionEvent.ACTION_DOWN);
 					event.setSource(curlView.getId());
-					
-					//curlView.dispatchTouchEvent(event);
 					BookLayout.this.dispatchTouchEvent(event);
 					hasDispatch = true;
-					//curlView.onTouch(curlView, event);
-					
 				}
 			}
 		});
 	}
+	
+	public void setWebViewVisible(boolean flag){
+		
+		if(flag){
+			webView.setVisibility(View.VISIBLE);
+			webView.getParent().bringChildToFront(webView);
+		}else{
+			webView.setVisibility(flag?View.VISIBLE:View.INVISIBLE);
+		}
+	}
 
-	boolean longTouch;
 	boolean hasDispatch = false;
 	public void setCurlViewVisible(final boolean visible) {
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
-				curlView.setVisibility(visible ? VISIBLE : INVISIBLE);
-				webView.setVisibility(visible ? INVISIBLE :VISIBLE );
+				if(!visible){
+					curlView.setAlpha(0);
+				}else{
+					curlView.setAlpha(1);
+					curlView.getParent().bringChildToFront(curlView);
+				}
+				
 			}
 		});
 	}
@@ -210,6 +233,7 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 
 	private int pageCount = 1;
 	private int currentPage = 0;
+	private int currentIndex = 0;
 	long time = 0;
 
 	
@@ -268,6 +292,7 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 	 */
 	public void onResetScrollFinish(){
 		setCurlViewVisible(false);
+		setWebViewVisible(true);
 		loadDialog.dismiss();
 	}
 
@@ -355,14 +380,38 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 
 	@Override
 	public synchronized void updatePage(CurlPage page, int width, int height, final int index) {
-		
+		Log.e("*****************************", "index:"+index+"currentIndex:"+currentIndex);
+		if((currentIndex>index) && currentIndex>0){
+			Log.e("*****************************", "index:"+index+"currentPage:"+currentIndex);
+			currentIndex--;
+			webView.loadUrl("javascript:justPageScroll("+(currentIndex)+")");
+		}else{
+			webView.loadUrl("javascript:justPageScroll("+(index)+")");
+			currentIndex = index;
+		}
+//		webView.loadUrl("javascript:justPageScroll("+(index)+")");
+//		webView.loadUrl("javascript:justPageScroll("+(index)+")");
+//		handler.post(new Runnable() {
+//			@Override
+//			public void run() {
+//				webView.loadUrl("javascript:justPageScroll("+(index)+")");
+//			}
+//		});
 	
+		
+		
+		
+//		webView.scrollTo((getWidth()) * index, 0);
+//        Bitmap bitmap = ArtBookUtils.loadBitmapFromView(webView, webView.getWidth(),
+//        		webView.getHeight());
+        
 		Bitmap bitmap = ArtBookUtils.loadBitmap(index);
 		if(bitmap!=null){
 			page.setTexture(bitmap, CurlPage.SIDE_FRONT);
 			page.setTexture(flip(new BitmapDrawable(bitmap)).getBitmap(),CurlPage.SIDE_BACK);
 			page.setColor(Color.argb(50, 255, 255, 255), CurlPage.SIDE_BACK);
 		}
+		
 		//setCurlViewVisible(false,null);
 	}
 	
@@ -394,6 +443,11 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 
 		return val / (metrics.densityDpi / 160f);
 
+	}
+
+	@Override
+	public void laseUpdatePage() {
+		webView.loadUrl("javascript:justPageScroll("+(0)+")");
 	}
 
 }

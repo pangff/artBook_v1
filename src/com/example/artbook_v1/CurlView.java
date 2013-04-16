@@ -322,7 +322,6 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 			}
 		}
 		case MotionEvent.ACTION_MOVE: {
-			Log.e("###########", "ACTION_MOVE");
 			updateCurlPos(mPointerPos);
 			break;
 		}
@@ -415,7 +414,6 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 					curlDir.y = curlPos.x - pageRect.left;
 				}
 			}
-			Log.e("###########", "7777777777777777777777");
 		} else if (mCurlState == CURL_LEFT) {
 			RectF pageRect = mRenderer.getPageRect(CurlRenderer.PAGE_LEFT);
 			if (curlPos.x <= pageRect.left) {
@@ -617,6 +615,8 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 				if (mRenderLeftPage) {
 					mRenderer.addCurlMesh(mPageLeft);
 				}
+			}else{
+				lastUpdatePage();
 			}
 
 			// If there is something to show on right page add it to renderer.
@@ -734,6 +734,10 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 		mPageProvider.updatePage(page, mPageBitmapWidth, mPageBitmapHeight,
 				index);
 	}
+	
+	private void lastUpdatePage(){
+		mPageProvider.laseUpdatePage();
+	}
 
 	/**
 	 * Updates bitmaps for page meshes.
@@ -815,6 +819,8 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 		 * Index is a number between 0 and getBitmapCount() - 1.
 		 */
 		public void updatePage(CurlPage page, int width, int height, int index);
+		
+		public void laseUpdatePage();
 	}
 
 	/**
