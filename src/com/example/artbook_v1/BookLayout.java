@@ -95,6 +95,7 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 
 				if (event.getAction() == MotionEvent.ACTION_MOVE) {
 					if(!isInSelection && !hasDispatch){
+						Log.e("#######################",":");
 						event.setAction(MotionEvent.ACTION_DOWN);
 						dispatchTouchEvents(event);
 						//webView.setVisibility(View.INVISIBLE);
@@ -167,10 +168,23 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 				handler.post(new Runnable() {
 					@Override
 					public void run() {
+//						Log.e("%%%%%%%%%%%%%%%","翻页到第"+index+"页");
+						
 						setCurlViewVisible(false);
 						setWebViewVisible(true);
 					}
 				});
+			}
+
+			@Override
+			public void onBeforeAnimationDone(int index) {
+				webView.loadUrl("javascript:justPageScroll("+(index)+")");
+			}
+
+			@Override
+			public void onPageNoAnimation(int index) {
+				setCurlViewVisible(false);
+				setWebViewVisible(true);
 			}
 		});
 		
@@ -180,7 +194,15 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 	 * 动画结束后js同步滚动完成，隐藏curlview
 	 */
 	public void onJustScrollFinish() {
-		
+//		handler.postDelayed(new Runnable() {
+//			@Override
+//			public void run() {
+//				setCurlViewVisible(false);
+//				setWebViewVisible(true);
+//			}
+//		}, 100);
+//		setCurlViewVisible(false);
+//		setWebViewVisible(true);
 		Log.e("%%%%%%%%%%%%%%%","翻页完毕加载webview");
 	}
 	
@@ -206,10 +228,12 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 	public void setWebViewVisible(boolean flag){
 		
 		if(flag){
-			webView.setVisibility(View.VISIBLE);
+			//webView.setVisibility(View.VISIBLE);
+			webView.setAlpha(1);
 			webView.getParent().bringChildToFront(webView);
 		}else{
-			webView.setVisibility(flag?View.VISIBLE:View.INVISIBLE);
+			webView.setAlpha(0);
+			//webView.setVisibility(flag?View.VISIBLE:View.INVISIBLE);
 		}
 	}
 
@@ -234,6 +258,7 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 	private int pageCount = 1;
 	private int currentPage = 0;
 	private int currentIndex = 0;
+	private int globalIndex = -1;
 	long time = 0;
 
 	
@@ -380,15 +405,15 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 
 	@Override
 	public synchronized void updatePage(CurlPage page, int width, int height, final int index) {
-		Log.e("*****************************", "index:"+index+"currentIndex:"+currentIndex);
-		if((currentIndex>index) && currentIndex>0){
-			Log.e("*****************************", "index:"+index+"currentPage:"+currentIndex);
-			currentIndex--;
-			webView.loadUrl("javascript:justPageScroll("+(currentIndex)+")");
-		}else{
-			webView.loadUrl("javascript:justPageScroll("+(index)+")");
-			currentIndex = index;
-		}
+//		Log.e("*****************************", "index:"+index+"currentIndex:"+currentIndex);
+//		if((currentIndex>index) && currentIndex>0 && globalIndex!=index){
+//			Log.e("*****************************", "index:"+index+"currentPage:"+currentIndex);
+//			currentIndex--;
+//			webView.loadUrl("javascript:justPageScroll("+(currentIndex)+")");
+//		}else if(globalIndex!=index){
+//			webView.loadUrl("javascript:justPageScroll("+(index)+")");
+//			currentIndex = index;
+//		}
 //		webView.loadUrl("javascript:justPageScroll("+(index)+")");
 //		webView.loadUrl("javascript:justPageScroll("+(index)+")");
 //		handler.post(new Runnable() {
@@ -447,7 +472,7 @@ public class BookLayout extends FrameLayout implements CurlView.PageProvider {
 
 	@Override
 	public void laseUpdatePage() {
-		webView.loadUrl("javascript:justPageScroll("+(0)+")");
+		//webView.loadUrl("javascript:justPageScroll("+(0)+")");
 	}
 
 }

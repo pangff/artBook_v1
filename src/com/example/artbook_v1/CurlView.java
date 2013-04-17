@@ -20,6 +20,7 @@ import android.content.Context;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -194,6 +195,7 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 			if(onPageAnimationDoneListener!=null){
 				onPageAnimationDoneListener.onPageAnimationDone(mCurrentIndex);
 			}
+			
 		} else {
 			mPointerPos.mPos.set(mAnimationSource);
 			float t = 1f - ((float) (currentTime - mAnimationStartTime) / mAnimationDurationTime);
@@ -206,7 +208,9 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 	}
 	
 	public interface OnPageAnimationDoneListener{
+		public void onBeforeAnimationDone(int index);
 		public void onPageAnimationDone(int index);
+		public void onPageNoAnimation(int index);
 	}
 
 	@Override
@@ -313,11 +317,18 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 					Log.e("++++++++++++++", "down2");
 					startCurl(CURL_RIGHT);
 				}
+				
 			}
 			// If we have are in curl state, let this case clause flow through
 			// to next one. We have pointer position and drag position defined
 			// and this will create first render request given these points.
+			
+			Log.e("#######################",mCurlState+":"+mCurrentIndex);
+			
 			if (mCurlState == CURL_NONE) {
+				if(onPageAnimationDoneListener!=null){
+					onPageAnimationDoneListener.onPageNoAnimation(mCurrentIndex);
+				}
 				return false;
 			}
 		}
@@ -327,7 +338,9 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 		}
 		case MotionEvent.ACTION_CANCEL:
 		case MotionEvent.ACTION_UP: {
+			
 			if (mCurlState == CURL_LEFT || mCurlState == CURL_RIGHT) {
+				
 				// Animation source is the point from where animation starts.
 				// Also it's handled in a way we actually simulate touch events
 				// meaning the output is exactly the same as if user drags the
@@ -348,6 +361,12 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 					mAnimationTarget.x = mRenderer
 							.getPageRect(CurlRenderer.PAGE_RIGHT).right;
 					mAnimationTargetEvent = SET_CURL_TO_RIGHT;
+					Log.e("OOOOOOOOOOOOOO", mCurlState+",,,,,,,");
+					if(mCurlState == CURL_LEFT){//翻页成功
+						if(onPageAnimationDoneListener!=null){
+							onPageAnimationDoneListener.onBeforeAnimationDone((mCurrentIndex-1));
+						}
+					}
 				} else {
 					// On left side target depends on visible pages.
 					mAnimationTarget.set(mDragStartPos);
@@ -357,6 +376,13 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 						mAnimationTarget.x = rightRect.left;
 					}
 					mAnimationTargetEvent = SET_CURL_TO_LEFT;
+					
+					Log.e("OOOOOOOOOOOOOO", mCurlState+"ppppppppp");
+					if(mCurlState == CURL_RIGHT){//翻页成功
+						if(onPageAnimationDoneListener!=null){
+							onPageAnimationDoneListener.onBeforeAnimationDone((mCurrentIndex+1));
+						}
+					}
 				}
 				mAnimate = true;
 				requestRender();
